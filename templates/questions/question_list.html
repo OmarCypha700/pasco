@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load icon %}
+
+<h2 class="mx-auto text-center my-3">Past Questions</h2>
+<div class="container mt-2 mb-5 bg-light p-4 rounded">
+<div class="row gap-4">
+    <div class="col-md-7"></div>
+    <a href="#" id="download-button" class=" col-md-2 btn text-white disabled" style="background-color: #183824;" aria-disabled="true"> {%icon 'download'%} Download All</a>
+    <button type="button" class=" col-md-2 btn text-white" style="background-color: #183824;" data-bs-toggle="modal" data-bs-target="#uploadModal"> {%icon 'file-plus'%} Add Question</button>
+</div>
+
+<table id="example" class="table table-striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Title</th>
+            <th>Course Code</th>
+            <th>Academic Year</th> 
+            <th>Upload Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for question in questions %}
+          <tr>
+            <td>
+            <input class="form-check-input question-checkbox" type="checkbox" name="question_ids" value="{{ question.id }}">
+            {{forloop.counter}}</td>
+            <td>{{question.title}}</td>
+            <td>{{question.course_code}}</td>
+            <td>{{question.academic_year}}</td>
+            <td>{{question.uploaded_on}}</td>
+            
+            <td>
+              <div class="d-flex ">
+                <a href="{% url 'view_question' question.id %}" class="nav-link text-primary px-2"> {% icon 'eye' %} </a>
+                <a href="{% url 'download_question' question.id %}" class="nav-link text-success px-2"> {% icon 'download' %} </a>
+                <a href="{% url 'delete_question' question.id %}" class="nav-link text-danger px-2"> {% icon 'trash-2' %} </a>                
+              </div>
+           </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload Past Question</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"> </button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadForm" method="post" enctype="multipart/form-data" action="{% url 'upload_question' %}">
+                    {% csrf_token %}
+                    
+                    <div class="form-group mb-3">
+                        <label for="title">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" placeholder="Enter course title" required>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="title">Course Code</label>
+                        <input type="text" class="form-control" id="course_code" name="course_code" placeholder="Enter course code" required>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="title">Academic Year</label>
+                        <input type="text" class="form-control" id="academic_year" name="academic_year" placeholder="Enter academic year" required>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="file">File (PDF ONLY)</label>
+                        <input type="file" class="form-control" id="file" name="file" accept="application/pdf" required>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Wait for the DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // ================================
+        // PDF Validation on Upload
+        // ================================
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('file');
+            const filePath = fileInput.value;
+            const allowedExtensions = /(\.pdf)$/i;
+
+            if (!allowedExtensions.exec(filePath)) {
+                alert('Please upload a valid PDF file.');
+                e.preventDefault();  // Prevent form submission if not a PDF
+            }
+        });
+
+        // ================================
+        // Enable/Disable Download Button
+        // ================================
+        // Get all the checkboxes and the download button
+       const checkboxes = document.querySelectorAll('.question-checkbox');
+    const downloadButton = document.getElementById('download-button');
+
+    // Function to get the selected checkboxes' IDs
+    function getSelectedIds() {
+        // Ensure that this returns an array of checkbox values
+        return Array.from(checkboxes)
+                    .filter(checkbox => checkbox.checked)  // Filter the checked ones
+                    .map(checkbox => checkbox.value);  // Get their values (IDs)
+    }
+
+    // Function to toggle the download button
+    function toggleDownloadButton() {
+        const selectedIds = getSelectedIds();
+        if (selectedIds.length > 0) {
+            // Enable the button if any checkboxes are selected
+            downloadButton.classList.remove('disabled');
+            downloadButton.setAttribute('aria-disabled', 'false');
+        } else {
+            // Disable the button if no checkboxes are selected
+            downloadButton.classList.add('disabled');
+            downloadButton.setAttribute('aria-disabled', 'true');
+        }
+    }
+
+    // Attach event listeners to all checkboxes
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', toggleDownloadButton);
+    });
+
+    // ================================
+    // Download Button Click Event
+    // ================================
+    downloadButton.addEventListener('click', function(e) {
+        e.preventDefault();  // Prevent default link behavior
+
+        const selectedIds = getSelectedIds();
+        if (selectedIds.length > 0) {
+            // Prepare form data for the POST request
+            const formData = new FormData();
+            selectedIds.forEach(id => formData.append('question_ids[]', id));  // This is where the error occurred
+
+            // Send the POST request via AJAX to download multiple questions
+            fetch("{% url 'download_multiple_questions' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',  // Include CSRF token
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();  // Get the response as a blob (binary data)
+                } else {
+                    return Promise.reject("Failed to download files.");
+                }
+            })
+            .then(blob => {
+                // Create a temporary link to download the zip file
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'past_questions.zip';  // The name of the downloaded file
+                document.body.appendChild(a);  // Append the link to the body
+                a.click();  // Trigger the download
+                a.remove();  // Remove the link after downloading
+            })
+            .catch(error => {
+                console.error(error);
+                alert('An error occurred while downloading the files.');
+            });
+        }
+    });
+
+    // Check the button status on page load
+    toggleDownloadButton();
+});
+</script>
+
+
+
+{% endblock %}
