@@ -51,6 +51,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'pasco.middleware.csp_middleware.ContentSecurityPolicyMiddleware',
 ]
 
 ROOT_URLCONF = "pasco.urls"
@@ -120,7 +121,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "static/"
-STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'pasco/static'),]
 
@@ -139,4 +139,3 @@ AUTHENTICATION_BACKENDS = ['auth.backends.EmailBackend', 'django.contrib.auth.ba
 MESSAGE_TAGS ={
     messages.ERROR: 'danger',
 }
-

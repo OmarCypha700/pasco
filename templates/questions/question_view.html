@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load icon %}
+
+<div class="container mt-2 mb-5 bg-secondary p-4 rounded">
+    <iframe src="{{ question.pdf_file.url }}" title="{{question.title}}" width="100%" height="80%"></iframe>
+</div>
+
+{% endblock %}

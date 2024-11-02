@@ -30,10 +30,12 @@ def upload_question(request):
     return render(request, 'questions/upload_question.html')
 
 
-def view_question(request, question_id):
-    question = get_object_or_404(PastQuestion, pk=question_id)
-    file_path = question.pdf_file.path
-    return FileResponse(open(file_path, 'rb'), content_type='application/pdf')
+def view_question(request, id):
+    question = get_object_or_404(PastQuestion, id=id)
+    context = {
+        'question':question,
+    }
+    return render(request,'questions/question_view.html', context)
 
 def download_question(request, question_id):
     question = get_object_or_404(PastQuestion, pk=question_id)

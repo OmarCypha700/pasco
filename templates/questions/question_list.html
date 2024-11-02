@@ -17,7 +17,7 @@
             <th>Title</th>
             <th>Course Code</th>
             <th>Academic Year</th> 
-            <th>Upload Date</th>
+            <th>Semester</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -27,16 +27,19 @@
             <td>
             <input class="form-check-input question-checkbox" type="checkbox" name="question_ids" value="{{ question.id }}">
             {{forloop.counter}}</td>
-            <td>{{question.title}}</td>
+            <td>
+            <a href="{% url 'view_question' question.id %}" class="nav-link">
+            {{question.title}}
+            </a>
+            </td>
             <td>{{question.course_code}}</td>
             <td>{{question.academic_year}}</td>
-            <td>{{question.uploaded_on}}</td>
+            <td>{{question.semester}}</td>
             
             <td>
-              <div class="d-flex ">
-                <a href="{% url 'view_question' question.id %}" class="nav-link text-primary px-2"> {% icon 'eye' %} </a>
-                <a href="{% url 'download_question' question.id %}" class="nav-link text-success px-2"> {% icon 'download' %} </a>
-                <a href="{% url 'delete_question' question.id %}" class="nav-link text-danger px-2"> {% icon 'trash-2' %} </a>                
+              <div class="d-flex gap-2">
+                <a href="{% url 'download_question' question.id %}" class="nav-link text-success"> {% icon 'download' %} </a>
+                <a href="{% url 'delete_question' question.id %}" class="nav-link text-danger"> {% icon 'trash-2' %} </a>                
               </div>
            </td>
 
